@@ -25,6 +25,9 @@ public class JwtUtil {
 
     @PostConstruct
     public void init() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("Jwt secret is not configured. Please jwt secret in config");
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
