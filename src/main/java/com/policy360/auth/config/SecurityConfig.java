@@ -29,14 +29,15 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login","/api/auth/ping","/api/auth/policies/**").permitAll()
+                        .requestMatchers("/api/auth/**","/api/auth/policies/**").permitAll()
+                        .requestMatchers("/api/claims/**").authenticated()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .requestMatchers("/agent").hasAnyRole("AGENT","ADMIN")
                         .requestMatchers("/customer").hasAnyRole("CUSTOMER","AGENT","ADMIN")
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-                //.userDetailsService(userDetailsService);
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .userDetailsService(userDetailsService);
 
         // Add JWT filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

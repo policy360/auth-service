@@ -35,7 +35,7 @@ public class JwtUtil {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", List.of("CUSTOMER")); // List of roles
+        claims.put("roles", List.of("CUSTOMER","ADMIN","AGENT")); // List of roles
 
         return Jwts.builder()
                 .setClaims(claims)
