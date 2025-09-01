@@ -28,10 +28,10 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto registerCustomer(RegistrationRequestDto requestDto) {
 
             if (userRepository.existsByUsername(requestDto.getUsername())) {
-                throw new UserAlreadyExistsException("Username already taken");
+                throw new UserAlreadyExistsException(requestDto.getUsername(),"Username already taken");
             }
             if (userRepository.existsByEmail(requestDto.getEmail())) {
-                throw new UserAlreadyExistsException("Email already registered");
+                throw new UserAlreadyExistsException(requestDto.getEmail(),"Email already registered");
             }
 
 
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserById(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with userId " + userId + " is not found."));
+                .orElseThrow(() -> new UserNotFoundException("","User with userId " + userId + " is not found."));
 
         UserDto userDto = UserDto.builder()
                 .userId(user.getId())

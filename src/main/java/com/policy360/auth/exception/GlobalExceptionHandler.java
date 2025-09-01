@@ -1,5 +1,9 @@
 package com.policy360.auth.exception;
 
+
+import com.policy360.auth.controller.BaseController;
+import com.policy360.auth.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,38 +14,52 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends BaseController {
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
-        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    public ResponseEntity<ApiResponse<Object>> handleUserAlreadyExists(
+            UserAlreadyExistsException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put(ex.getFieldName(), ex.getMessage());
+        return error(errors, "Conflict error", request, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ResponseEntity<ApiResponse<Object>> handleUserNotFound(
+            UserNotFoundException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put(ex.getFieldName(), ex.getMessage());
+        return error(errors, "Not Found", request, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ResponseEntity<ApiResponse<Object>> handleInvalidCredentials(
+            InvalidCredentialsException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put(ex.getFieldName(), ex.getMessage());
+        return error(errors, "Unauthorized", request, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleValidationExceptions(
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
+
         Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-
-        return ResponseEntity.badRequest().body(errors);
+        return error(errors, "Validation failed", request, HttpStatus.BAD_REQUEST);
     }
-    public  ResponseEntity<Map<String, String>> buildResponse(HttpStatus status, String message) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", message);
-        error.put("status", String.valueOf(status.value()));
 
-        return new ResponseEntity<>(error, status);
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Object>> handleRuntimeException(
+            RuntimeException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return error(errors, "Internal server error", request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
